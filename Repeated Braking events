@@ -1,35 +1,42 @@
-def find_braking_events(events):
+import pandas as pd
+
+def find_repeated_braking(data):
     """
-    Find braking events occurring within 1 second of each other.
+    Find repeated braking events that occur within 1 second intervals,
+    where each braking event lasts at most 1 second.
 
     Args:
-        events (list of float): A list of timestamps (in seconds) of braking events.
+        data (pd.DataFrame): DataFrame with 'timestamp' and 'brake_pedal' columns.
 
     Returns:
-        list of tuple: A list of tuples where each tuple contains two braking events
-                       occurring within 1 second of each other.
+        list of tuple: A list of tuples, where each tuple contains the timestamps
+                       of two consecutive braking events within 1 second.
     """
-    # Sort events to ensure timestamps are in order
-    events.sort()
+    # Find braking events (timestamps where brake_pedal = 1)
+    braking_events = data[data['brake_pedal'] == 1]['timestamp'].tolist()
 
-    braking_pairs = []
+    repeated_braking = []
 
-    # Iterate through the events and compare consecutive timestamps
-    for i in range(len(events) - 1):
-        if abs(events[i + 1] - events[i]) <= 1:
-            braking_pairs.append((events[i], events[i + 1]))
+    # Check intervals between consecutive braking events
+    for i in range(len(braking_events) - 1):
+        if braking_events[i + 1] - braking_events[i] <= 1:
+            repeated_braking.append((braking_events[i], braking_events[i + 1]))
 
-    return braking_pairs
+    return repeated_braking
 
 
 # Example usage
 if __name__ == "__main__":
-    # Example list of braking event timestamps in seconds
-    braking_events = [1.2, 2.5, 2.9, 4.0, 5.1, 6.05, 6.9]
+    # Example brake pedal dataset
+    data = pd.DataFrame({
+        "timestamp": list(range(20)),
+        "brake_pedal": [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0]
+    })
 
-    # Find braking events within 1 second
-    close_events = find_braking_events(braking_events)
+    # Find repeated braking events
+    repeated_brakes = find_repeated_braking(data)
 
-    print("Braking events within 1 second of each other:")
-    for pair in close_events:
-        print(pair)
+    # Output results
+    print("Repeated braking events within 1 second of each other:")
+    for event in repeated_brakes:
+        print(event)
