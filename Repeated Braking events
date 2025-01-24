@@ -1,0 +1,35 @@
+def find_braking_events(events):
+    """
+    Find braking events occurring within 1 second of each other.
+
+    Args:
+        events (list of float): A list of timestamps (in seconds) of braking events.
+
+    Returns:
+        list of tuple: A list of tuples where each tuple contains two braking events
+                       occurring within 1 second of each other.
+    """
+    # Sort events to ensure timestamps are in order
+    events.sort()
+
+    braking_pairs = []
+
+    # Iterate through the events and compare consecutive timestamps
+    for i in range(len(events) - 1):
+        if abs(events[i + 1] - events[i]) <= 1:
+            braking_pairs.append((events[i], events[i + 1]))
+
+    return braking_pairs
+
+
+# Example usage
+if __name__ == "__main__":
+    # Example list of braking event timestamps in seconds
+    braking_events = [1.2, 2.5, 2.9, 4.0, 5.1, 6.05, 6.9]
+
+    # Find braking events within 1 second
+    close_events = find_braking_events(braking_events)
+
+    print("Braking events within 1 second of each other:")
+    for pair in close_events:
+        print(pair)
