@@ -1,0 +1,58 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+df = pd.read_csv("synthetic_aco_data.csv", index_col=0)
+
+# Basic info
+print("Dataset Info:")
+print(df.info())
+
+# Summary statistics
+print("\nSummary Statistics:")
+print(df.describe())
+
+# Check for missing values
+print("\nMissing Values:")
+print(df.isnull().sum().sum())  # Total missing values
+
+
+# Set seaborn style
+sns.set_style("whitegrid")
+
+# Directions and road types
+directions = ["ACOX", "ACOY", "ACOZ"]
+road_types = [1, 2, 3, 4, 5]
+
+# Find the worst direction (highest ACO max value) for each road type
+worst_max_values = []
+for road in road_types:
+    max_value = float("-inf")
+    worst_direction = None
+
+    for direction in directions:
+        col_name = f"{direction}_max_{road}"
+        current_max = df[col_name].max()
+
+        if current_max > max_value:
+            max_value = current_max
+            worst_direction = direction
+
+    worst_max_values.append((road, worst_direction, max_value))
+
+# Convert to DataFrame for easy plotting
+worst_df = pd.DataFrame(worst_max_values, columns=["RoadType", "WorstDirection", "MaxValue"])
+
+# Display results
+print("\nWorst ACO max values (highest failure risk) for each road type:")
+print(worst_df)
+
+# Visualization: Bar chart showing the worst max value per road type with worst direction
+plt.figure(figsize=(10, 6))
+sns.barplot(data=worst_df, x="RoadType", y="MaxValue", hue="WorstDirection")
+plt.title("Worst ACO Max Values (Highest Failure Risk) for Each Road Type")
+plt.xlabel("Road Type")
+plt.ylabel("Max ACO Value")
+plt.legend(title="Worst Direction")
+plt.show()
