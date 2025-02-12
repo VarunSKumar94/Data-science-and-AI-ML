@@ -56,3 +56,40 @@ plt.xlabel("Road Type")
 plt.ylabel("Max ACO Value")
 plt.legend(title="Worst Direction")
 plt.show()
+
+# 2. high ACO vins arranged road type wise
+'''Approach
+	1.	Identify high-risk VINs (crossing 90th percentile).
+	2.	Count occurrences for each Direction-RoadType (e.g., ACOX_max_1).
+	3.	Format into a heatmap-friendly structure (Direction as rows, RoadType as columns).
+	4.	Plot the heatmap using seaborn.'''
+
+# Identify max columns (ACOX_max_X, ACOY_max_X, ACOZ_max_X)
+max_columns = [col for col in df.columns if "_max_" in col]
+
+# Dictionary to store VIN counts crossing the 90th percentile
+high_aco_counts = {}
+
+for col in max_columns:
+    threshold = df[col].quantile(0.90)  # Compute 90th percentile
+    high_count = (df[col] > threshold).sum()  # Count VINs exceeding the threshold
+    high_aco_counts[col] = high_count
+
+# Convert to DataFrame
+high_aco_df = pd.DataFrame(list(high_aco_counts.items()), columns=["Direction-RoadType", "HighVINCount"])
+
+# Split Direction and RoadType for better heatmap visualization
+high_aco_df["Direction"] = high_aco_df["Direction-RoadType"].apply(lambda x: x.split("_")[0])
+high_aco_df["RoadType"] = high_aco_df["Direction-RoadType"].apply(lambda x: x.split("_")[-1])
+high_aco_df.drop(columns=["Direction-RoadType"], inplace=True)
+
+# Pivot to get RoadType as columns and Direction as rows
+heatmap_data = high_aco_df.pivot(index="Direction", columns="RoadType", values="HighVINCount").fillna(0)
+
+# Plot heatmap
+plt.figure(figsize=(10, 6))
+sns.heatmap(heatmap_data, annot=True, cmap="coolwarm", linewidths=0.5, fmt="g")
+plt.title("High-Risk VINs Heatmap (Exceeding 90th Percentile)")
+plt.xlabel("Road Type")
+plt.ylabel("ACO Direction")
+plt.show()
