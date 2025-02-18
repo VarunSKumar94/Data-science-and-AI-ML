@@ -3,40 +3,45 @@ import pandas as pd
 def find_repeated_braking(data):
     """
     Find repeated braking events that occur within 1 second intervals,
-    where each braking event lasts at most 1 second.
+    where each braking event is defined by a continuous set of 1s in 'brake_pedal'.
 
     Args:
         data (pd.DataFrame): DataFrame with 'timestamp' and 'brake_pedal' columns.
 
     Returns:
-        list of tuple: A list of tuples, where each tuple contains the timestamps
-                       of two consecutive braking events within 1 second.
+        list of tuple: A list of tuples, where each tuple contains the start 
+                       timestamps of two consecutive braking events within 1 second.
+                       Returns an empty list if no repeated braking events are found.
     """
-    # Find braking events (timestamps where brake_pedal = 1)
-    braking_events = data[data['brake_pedal'] == 1]['timestamp'].tolist()
+
+    braking_events = []
+    start_time = None
+    for i in range(len(data)):
+        if data['brake_pedal'].iloc[i] == 1:
+            if start_time is None:
+                start_time = data['timestamp'].iloc[i]
+        else:
+            if start_time is not None:
+                braking_events.append(start_time)
+                start_time = None
+
+    # Handle the case where the last braking event extends to the end of the DataFrame
+    if start_time is not None:
+        braking_events.append(start_time)
 
     repeated_braking = []
-
-    # Check intervals between consecutive braking events
     for i in range(len(braking_events) - 1):
-        if braking_events[i + 1] - braking_events[i] <= 1:
+        if braking_events[i + 1] - braking_events[i] <= pd.Timedelta(seconds=1):  # Use Timedelta for time comparisons
             repeated_braking.append((braking_events[i], braking_events[i + 1]))
 
     return repeated_braking
 
 
-# Example usage
-if __name__ == "__main__":
-    # Example brake pedal dataset
-    data = pd.DataFrame({
-        "timestamp": list(range(20)),
-        "brake_pedal": [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0]
-    })
+# Example Usage (replace with your actual data)
+data = {'timestamp': pd.to_datetime(['2024-10-27 12:31:00', '2024-10-27 12:31:01', '2024-10-27 12:31:02', '2024-10-27 12:31:03', '2024-10-27 12:31:04', '2024-10-27 12:31:05', '2024-10-27 12:31:06', '2024-10-27 12:31:07','2024-10-27 12:32:00', '2024-10-27 12:32:01', '2024-10-27 12:32:02', '2024-10-27 12:32:03', '2024-10-27 12:32:04', '2024-10-27 12:32:05', '2024-10-27 12:32:06', '2024-10-27 12:32:07','2024-10-27 12:33:00', '2024-10-27 12:33:01', '2024-10-27 12:33:02', '2024-10-27 12:33:03', '2024-10-27 12:33:04', '2024-10-27 12:33:05', '2024-10-27 12:33:06', '2024-10-27 12:33:07']),
+        'brake_pedal': [0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1]}
+df = pd.DataFrame(data)
 
-    # Find repeated braking events
-    repeated_brakes = find_repeated_braking(data)
+repeated_braking = find_repeated_braking(df)
+print(repeated_braking)
 
-    # Output results
-    print("Repeated braking events within 1 second of each other:")
-    for event in repeated_brakes:
-        print(event)
